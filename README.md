@@ -10,6 +10,7 @@ A self-contained Docker Compose stack for automatically processing DMARC aggrega
 | **Elasticsearch** | `8.17.0` | Stores parsed report data with 1-year retention |
 | **Kibana** | `8.17.0` | DMARC dashboards (login required) |
 | **nginx** | `nginx:alpine` + certbot | Reverse proxy with automatic Let's Encrypt TLS |
+| **geoipupdate** | `ghcr.io/maxmind/geoipupdate` | Downloads and weekly-refreshes MaxMind GeoLite2-Country database |
 | **setup** | `alpine` | One-shot init: sets passwords, ILM policy, imports dashboards |
 
 ## How It Works
@@ -17,7 +18,8 @@ A self-contained Docker Compose stack for automatically processing DMARC aggrega
 1. **parsedmarc** connects to a dedicated IMAP mailbox over SSL (port 993) and uses IMAP IDLE to process reports as they arrive — no cron job required.
 2. Parsed reports are indexed into **Elasticsearch** immediately. Index lifecycle management automatically deletes data older than one year.
 3. **Kibana** provides pre-built dashboards for DMARC aggregate and forensic reports, imported automatically on first run.
-4. **nginx** terminates TLS using a Let's Encrypt certificate, redirects HTTP to HTTPS, and proxies all traffic to Kibana. The certificate is renewed automatically twice daily.
+4. **geoipupdate** downloads the MaxMind GeoLite2-Country database on startup and refreshes it weekly. parsedmarc uses it to resolve sender IPs to countries in the dashboard.
+5. **nginx** terminates TLS using a Let's Encrypt certificate, redirects HTTP to HTTPS, and proxies all traffic to Kibana. The certificate is renewed automatically twice daily.
 
 ## Prerequisites
 
@@ -46,6 +48,10 @@ KIBANA_SYSTEM_PASSWORD=    # strong password for the kibana_system account
 IMAP_HOST=                 # e.g. mail.example.com
 IMAP_USER=                 # e.g. dmarc@example.com
 IMAP_PASSWORD=             # IMAP account password
+
+# MaxMind GeoIP (free account at https://www.maxmind.com)
+MAXMIND_ACCOUNT_ID=        # MaxMind account ID
+MAXMIND_LICENSE_KEY=       # MaxMind license key
 
 # nginx / Let's Encrypt
 KIBANA_HOSTNAME=           # e.g. dmarc.example.com (must resolve to this server)
@@ -139,6 +145,8 @@ Scroll down to **Environment variables** and add each of the following:
 | `IMAP_HOST` | Your IMAP server hostname |
 | `IMAP_USER` | The DMARC mailbox address |
 | `IMAP_PASSWORD` | The IMAP account password |
+| `MAXMIND_ACCOUNT_ID` | MaxMind account ID (free account at maxmind.com) |
+| `MAXMIND_LICENSE_KEY` | MaxMind license key |
 | `KIBANA_HOSTNAME` | Public hostname for Kibana (e.g. `dmarc.example.com`) |
 | `CERTBOT_EMAIL` | Your email for Let's Encrypt registration and expiry notices |
 
@@ -153,7 +161,7 @@ Scroll down to **Environment variables** and add each of the following:
 Click **Deploy the stack**. Portainer will clone the repo and start all services. The startup order is:
 
 ```
-elasticsearch → (setup + kibana) → parsedmarc → nginx
+elasticsearch → (setup + kibana + geoipupdate) → parsedmarc → nginx
 ```
 
 The `setup` container will exit once initialization is complete — this is expected. The stack is fully up when `dmarc-nginx` shows as running.
