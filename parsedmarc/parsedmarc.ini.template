@@ -1,0 +1,22 @@
+[general]
+save_aggregate = True
+save_forensic = True
+
+[imap]
+host = ${IMAP_HOST}
+user = ${IMAP_USER}
+password = ${IMAP_PASSWORD}
+port = 993
+ssl = True
+
+[mailbox]
+watch = True
+reports_folder = INBOX
+archive_folder = Archive
+delete = False
+
+[elasticsearch]
+hosts = http://elasticsearch:9200
+username = elastic
+password = ${ELASTIC_PASSWORD}
+ssl = False

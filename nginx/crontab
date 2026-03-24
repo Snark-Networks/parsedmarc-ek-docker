@@ -1,0 +1,4 @@
+# Attempt certificate renewal twice daily.
+# certbot only renews if the cert is within 30 days of expiry.
+# On success, nginx reloads to pick up the new cert without downtime.
+0 */12 * * * certbot renew --webroot --webroot-path /var/www/certbot --quiet --post-hook "nginx -s reload"
