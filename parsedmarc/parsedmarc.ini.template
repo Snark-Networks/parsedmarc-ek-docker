@@ -1,6 +1,7 @@
 [general]
 save_aggregate = True
 save_forensic = True
+ip_db_path = /usr/share/GeoIP/GeoLite2-Country.mmdb
 
 [imap]
 host = ${IMAP_HOST}

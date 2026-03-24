@@ -58,6 +58,18 @@ services:
         condition: service_healthy
     restart: "no"
 
+  geoipupdate:
+    image: ghcr.io/maxmind/geoipupdate:latest
+    container_name: dmarc-geoipupdate
+    environment:
+      - GEOIPUPDATE_ACCOUNT_ID=${MAXMIND_ACCOUNT_ID}
+      - GEOIPUPDATE_LICENSE_KEY=${MAXMIND_LICENSE_KEY}
+      - GEOIPUPDATE_EDITION_IDS=GeoLite2-Country
+      - GEOIPUPDATE_FREQUENCY=168
+    volumes:
+      - geoip_data:/usr/share/GeoIP
+    restart: unless-stopped
+
   parsedmarc:
     image: ghcr.io/snarkholdings/shc-dmarc-processor/parsedmarc:latest
     pull_policy: always
@@ -67,6 +79,8 @@ services:
       - IMAP_USER=${IMAP_USER}
       - IMAP_PASSWORD=${IMAP_PASSWORD}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - geoip_data:/usr/share/GeoIP:ro
     depends_on:
       setup:
         condition: service_completed_successfully
@@ -93,4 +107,6 @@ volumes:
   elasticsearch_data:
     driver: local
   nginx_certs:
+    driver: local
+  geoip_data:
     driver: local
