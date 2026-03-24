@@ -111,3 +111,62 @@ docker compose down
 # Stop and remove all data (destructive)
 docker compose down -v
 ```
+
+## Deploying via Portainer
+
+### 1. Add the Stack
+
+1. In the Portainer sidebar, go to **Stacks**
+2. Click **+ Add stack**
+3. Give it a name — e.g. `dmarc-processor`
+4. Under **Build method**, select **Repository**
+
+### 2. Configure the Repository
+
+- **Repository URL:** `https://github.com/snarkholdings/shc-dmarc-processor`
+- **Repository reference:** `refs/heads/main`
+- **Compose path:** `docker-compose.yml`
+- If the repo is private, enable **Authentication** and provide a GitHub personal access token
+
+### 3. Set Environment Variables
+
+Scroll down to **Environment variables** and add each of the following:
+
+| Variable | Value |
+|---|---|
+| `ELASTIC_PASSWORD` | Strong password for the `elastic` superuser |
+| `KIBANA_SYSTEM_PASSWORD` | Strong password for `kibana_system` (must differ from above) |
+| `IMAP_HOST` | Your IMAP server hostname |
+| `IMAP_USER` | The DMARC mailbox address |
+| `IMAP_PASSWORD` | The IMAP account password |
+| `KIBANA_HOSTNAME` | Public hostname for Kibana (e.g. `dmarc.example.com`) |
+| `CERTBOT_EMAIL` | Your email for Let's Encrypt registration and expiry notices |
+
+### 4. Before You Click Deploy
+
+- The DNS A record for `KIBANA_HOSTNAME` must already point to this server's public IP
+- Ports **80** and **443** must be open and reachable from the internet
+- No other service on the host may be using ports 80 or 443
+
+### 5. Deploy
+
+Click **Deploy the stack**. Portainer will clone the repo and start all services. The startup order is:
+
+```
+elasticsearch → (setup + kibana) → parsedmarc → nginx
+```
+
+The `setup` container will exit once initialization is complete — this is expected. The stack is fully up when `dmarc-nginx` shows as running.
+
+### 6. Updating
+
+When changes are pushed to the repo, go to the stack in Portainer and click **Pull and redeploy**.
+
+## Default Credentials
+
+| Service | Username | Password |
+|---|---|---|
+| Kibana | `elastic` | Value of `ELASTIC_PASSWORD` |
+| Elasticsearch API | `elastic` | Value of `ELASTIC_PASSWORD` |
+
+There are no hardcoded default passwords — all credentials are set by you in the environment variables before deployment. The `kibana_system` account is used internally by Kibana to communicate with Elasticsearch and is not used for interactive login.
