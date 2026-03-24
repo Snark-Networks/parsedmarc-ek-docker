@@ -61,8 +61,8 @@ services:
     restart: "no"
 
   parsedmarc:
-    build:
-      context: ./parsedmarc
+    image: ghcr.io/snarkholdings/shc-dmarc-processor/parsedmarc:latest
+    pull_policy: always
     container_name: dmarc-parsedmarc
     environment:
       - IMAP_HOST=${IMAP_HOST}
@@ -75,8 +75,8 @@ services:
     restart: unless-stopped
 
   nginx:
-    build:
-      context: ./nginx
+    image: ghcr.io/snarkholdings/shc-dmarc-processor/nginx:latest
+    pull_policy: always
     container_name: dmarc-nginx
     environment:
       - KIBANA_HOSTNAME=${KIBANA_HOSTNAME}
