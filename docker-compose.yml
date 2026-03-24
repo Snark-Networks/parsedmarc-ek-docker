@@ -47,14 +47,12 @@ services:
     restart: unless-stopped
 
   setup:
-    image: alpine:latest
+    image: ghcr.io/snarkholdings/shc-dmarc-processor/setup:latest
+    pull_policy: always
     container_name: dmarc-setup
-    volumes:
-      - ./setup:/setup:ro
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - KIBANA_SYSTEM_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
-    command: sh -c "apk add --no-cache curl && sh /setup/setup.sh"
     depends_on:
       elasticsearch:
         condition: service_healthy
