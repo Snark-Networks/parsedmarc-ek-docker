@@ -47,7 +47,7 @@ services:
     restart: unless-stopped
 
   setup:
-    image: ghcr.io/snarkholdings/shc-dmarc-processor/setup:latest
+    image: ghcr.io/snark-networks/parsedmarc-ek-docker/setup:latest
     pull_policy: always
     container_name: dmarc-setup
     environment:
@@ -71,7 +71,7 @@ services:
     restart: unless-stopped
 
   parsedmarc:
-    image: ghcr.io/snarkholdings/shc-dmarc-processor/parsedmarc:latest
+    image: ghcr.io/snark-networks/parsedmarc-ek-docker/parsedmarc:latest
     pull_policy: always
     container_name: dmarc-parsedmarc
     environment:
@@ -87,7 +87,7 @@ services:
     restart: unless-stopped
 
   nginx:
-    image: ghcr.io/snarkholdings/shc-dmarc-processor/nginx:latest
+    image: ghcr.io/snark-networks/parsedmarc-ek-docker/nginx:latest
     pull_policy: always
     container_name: dmarc-nginx
     environment:

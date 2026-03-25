@@ -135,7 +135,7 @@ docker compose down -v
 
 ### 2. Configure the Repository
 
-- **Repository URL:** `https://github.com/snarkholdings/shc-dmarc-processor`
+- **Repository URL:** `https://github.com/Snark-Networks/parsedmarc-ek-docker`
 - **Repository reference:** `refs/heads/main`
 - **Compose path:** `docker-compose.yml`
 - If the repo is private, enable **Authentication** and provide a GitHub personal access token
