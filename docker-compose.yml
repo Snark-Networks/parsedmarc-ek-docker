@@ -13,9 +13,11 @@ services:
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=false
       - xpack.security.transport.ssl.enabled=false
-      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+      - ES_JAVA_OPTS=-Xms${ES_HEAP_SIZE:-2g} -Xmx${ES_HEAP_SIZE:-2g}
+      - path.repo=/usr/share/elasticsearch/snapshots
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
+      - elasticsearch_snapshots:/usr/share/elasticsearch/snapshots
     ports:
       - "127.0.0.1:9200:9200"
     healthcheck:
@@ -53,6 +55,10 @@ services:
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - KIBANA_SYSTEM_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
+      - KIBANA_VIEWER_PASSWORD=${KIBANA_VIEWER_PASSWORD}
+      - DATA_RETENTION_DAYS=${DATA_RETENTION_DAYS:-365}
+      - SNAPSHOT_SCHEDULE=${SNAPSHOT_SCHEDULE:-0 0 2 * * ?}
+      - SNAPSHOT_RETENTION_DAYS=${SNAPSHOT_RETENTION_DAYS:-30}
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -74,6 +80,8 @@ services:
     image: ghcr.io/snark-networks/parsedmarc-ek-docker/parsedmarc:latest
     pull_policy: always
     container_name: dmarc-parsedmarc
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - IMAP_HOST=${IMAP_HOST}
       - IMAP_USER=${IMAP_USER}
@@ -86,10 +94,20 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
+  watchtower:
+    image: containrrr/watchtower
+    container_name: dmarc-watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --label-enable --cleanup --interval ${WATCHTOWER_INTERVAL:-86400}
+    restart: unless-stopped
+
   nginx:
     image: ghcr.io/snark-networks/parsedmarc-ek-docker/nginx:latest
     pull_policy: always
     container_name: dmarc-nginx
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - KIBANA_HOSTNAME=${KIBANA_HOSTNAME}
       - CERTBOT_EMAIL=${CERTBOT_EMAIL}
@@ -106,6 +124,8 @@ services:
 
 volumes:
   elasticsearch_data:
+    driver: local
+  elasticsearch_snapshots:
     driver: local
   nginx_certs:
     driver: local

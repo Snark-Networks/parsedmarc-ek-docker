@@ -7,11 +7,12 @@ A self-contained Docker Compose stack for automatically processing DMARC aggrega
 | Service | Image | Role |
 |---|---|---|
 | **parsedmarc** | `python:3.13-slim` + parsedmarc | Polls IMAP inbox in watch mode, parses and indexes reports |
-| **Elasticsearch** | `8.17.0` | Stores parsed report data with 1-year retention |
+| **Elasticsearch** | `8.17.0` | Stores parsed report data with configurable retention |
 | **Kibana** | `8.17.0` | DMARC dashboards (login required) |
 | **nginx** | `nginx:alpine` + certbot | Reverse proxy with automatic Let's Encrypt TLS (or HTTP-only when `NGINX_LOCALHOST_ONLY=true`) |
 | **geoipupdate** | `ghcr.io/maxmind/geoipupdate` | Downloads and weekly-refreshes MaxMind GeoLite2-Country database |
-| **setup** | `alpine` | One-shot init: sets passwords, ILM policy, imports dashboards |
+| **setup** | `alpine` | One-shot init: sets passwords, ILM policy, snapshot policy, viewer user, imports dashboards |
+| **watchtower** | `containrrr/watchtower` | Automatically pulls and redeploys updated parsedmarc and nginx images |
 
 ## How It Works
 
@@ -62,6 +63,20 @@ NGINX_LOCALHOST_ONLY=      # set to 'true' to skip Let's Encrypt and run HTTP-on
 NGINX_BIND_ADDR=           # set to '127.0.0.1' to restrict Docker port binding to host loopback
 NGINX_HTTP_PORT=           # host port for HTTP (default: 80)
 NGINX_HTTPS_PORT=          # host port for HTTPS (default: 443; unused when NGINX_LOCALHOST_ONLY=true)
+
+# Elasticsearch
+ES_HEAP_SIZE=2g            # JVM heap size — half of available RAM, up to 32g
+
+# Data
+DATA_RETENTION_DAYS=365    # days to retain DMARC report data
+KIBANA_VIEWER_PASSWORD=    # read-only Kibana user password (leave empty to skip)
+
+# Snapshots
+SNAPSHOT_SCHEDULE=0 0 2 * * ?   # ES cron for daily snapshots (default: 02:00 UTC)
+SNAPSHOT_RETENTION_DAYS=30      # days to keep snapshots (minimum 5 always kept)
+
+# Watchtower
+WATCHTOWER_INTERVAL=86400  # seconds between image update checks (default: 24h)
 ```
 
 ### 2. Start the stack
@@ -96,7 +111,27 @@ Replace `dmarc@example.com` with the address configured in `IMAP_USER`.
 
 ## Data Retention
 
-Reports are retained for **365 days**. Elasticsearch index lifecycle management applies automatically to all `dmarc_aggregate-*`, `dmarc_forensic-*`, and `smtp_tls-*` indices via the `dmarc-retention-1year` ILM policy created during setup.
+Reports are retained for the number of days set in `DATA_RETENTION_DAYS` (default: 365). Elasticsearch index lifecycle management applies automatically to all `dmarc_aggregate-*`, `dmarc_forensic-*`, and `smtp_tls-*` indices via the `dmarc-retention` ILM policy created during setup.
+
+## Backups
+
+Snapshots are taken automatically on the schedule defined by `SNAPSHOT_SCHEDULE` (default: daily at 02:00 UTC) via Elasticsearch Snapshot Lifecycle Management. Snapshots are stored in the `elasticsearch_snapshots` Docker volume and retained for `SNAPSHOT_RETENTION_DAYS` days (default: 30), with a minimum of 5 snapshots always kept.
+
+```bash
+# Trigger a snapshot immediately
+curl -u elastic:${ELASTIC_PASSWORD} -X PUT http://localhost:9200/_slm/policy/dmarc-daily-snapshot/_execute
+
+# List all snapshots
+curl -u elastic:${ELASTIC_PASSWORD} http://localhost:9200/_snapshot/dmarc_backup/*?pretty
+
+# Restore a snapshot (stop parsedmarc first)
+docker compose stop parsedmarc
+curl -u elastic:${ELASTIC_PASSWORD} -X POST \
+  "http://localhost:9200/_snapshot/dmarc_backup/<snapshot-name>/_restore"
+docker compose start parsedmarc
+```
+
+> **Note:** The `elasticsearch_snapshots` volume is local to the host. For off-host backups, mount an NFS share or S3-compatible volume at that path.
 
 ## TLS Certificate Renewal
 
@@ -161,6 +196,12 @@ Scroll down to **Environment variables** and add each of the following:
 | `NGINX_BIND_ADDR` | Set to `127.0.0.1` to restrict Docker port binding to the host loopback interface (optional, recommended with `NGINX_LOCALHOST_ONLY=true`) |
 | `NGINX_HTTP_PORT` | Host port to expose for HTTP — defaults to `80` (optional) |
 | `NGINX_HTTPS_PORT` | Host port to expose for HTTPS — defaults to `443`; unused when `NGINX_LOCALHOST_ONLY=true` (optional) |
+| `ES_HEAP_SIZE` | Elasticsearch JVM heap — defaults to `2g`; set to half of available RAM up to `32g` |
+| `DATA_RETENTION_DAYS` | Days to retain DMARC report data — defaults to `365` |
+| `KIBANA_VIEWER_PASSWORD` | Password for the read-only `kibana_viewer` Kibana user — leave empty to skip creation |
+| `SNAPSHOT_SCHEDULE` | Elasticsearch SLM cron schedule for snapshots — defaults to `0 0 2 * * ?` (daily at 02:00 UTC) |
+| `SNAPSHOT_RETENTION_DAYS` | Days to keep snapshots — defaults to `30` (minimum 5 always kept) |
+| `WATCHTOWER_INTERVAL` | Seconds between Watchtower image update checks — defaults to `86400` (24h) |
 
 ### 4. Before You Click Deploy
 
