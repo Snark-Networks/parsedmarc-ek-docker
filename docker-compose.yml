@@ -2,9 +2,21 @@ version: '3.8'
 
 services:
 
+  fix-snapshot-permissions:
+    image: busybox
+    container_name: dmarc-fix-snapshot-permissions
+    user: root
+    volumes:
+      - elasticsearch_snapshots:/snapshots
+    command: ["chown", "-R", "1000:1000", "/snapshots"]
+    restart: "no"
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
     container_name: dmarc-elasticsearch
+    depends_on:
+      fix-snapshot-permissions:
+        condition: service_completed_successfully
     environment:
       - node.name=elasticsearch
       - cluster.name=dmarc-cluster

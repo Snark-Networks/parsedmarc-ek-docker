@@ -97,7 +97,7 @@ curl -sf -u "elastic:${ELASTIC_PASSWORD}" \
       "settings": {
         "location": "/usr/share/elasticsearch/snapshots"
       }
-    }'
+    }' || { echo "ERROR: Failed to register snapshot repository." >&2; exit 1; }
 echo ""
 echo "    Snapshot repository registered."
 
