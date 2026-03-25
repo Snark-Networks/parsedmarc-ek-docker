@@ -132,7 +132,7 @@ curl -u elastic:${ELASTIC_PASSWORD} -X POST \
 docker compose start parsedmarc
 ```
 
-> **Note:** The `elasticsearch_snapshots` volume is local to the host. For off-host backups, mount an NFS share or S3-compatible volume at that path.
+> **Note:** Snapshots are stored inside the `elasticsearch_data` volume alongside index data. They persist as long as the volume exists and are removed if you run `docker compose down -v`. For off-host backups, consider periodically copying the `snapshots/` subdirectory out of the volume to external storage.
 
 ## TLS Certificate Renewal
 
@@ -245,6 +245,7 @@ When changes are pushed to the repo, go to the stack in Portainer and click **Pu
 | Service | Username | Password |
 |---|---|---|
 | Kibana | `elastic` | Value of `ELASTIC_PASSWORD` |
+| Kibana (read-only) | `kibana_viewer` | Value of `KIBANA_VIEWER_PASSWORD` (only exists if set) |
 | Elasticsearch API | `elastic` | Value of `ELASTIC_PASSWORD` |
 
 There are no hardcoded default passwords — all credentials are set by you in the environment variables before deployment. The `kibana_system` account is used internally by Kibana to communicate with Elasticsearch and is not used for interactive login.
