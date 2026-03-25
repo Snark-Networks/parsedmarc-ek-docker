@@ -60,6 +60,8 @@ CERTBOT_EMAIL=             # email for Let's Encrypt registration and expiry not
 # Optional: localhost / behind-proxy mode
 NGINX_LOCALHOST_ONLY=      # set to 'true' to skip Let's Encrypt and run HTTP-only
 NGINX_BIND_ADDR=           # set to '127.0.0.1' to restrict Docker port binding to host loopback
+NGINX_HTTP_PORT=           # host port for HTTP (default: 80)
+NGINX_HTTPS_PORT=          # host port for HTTPS (default: 443; unused when NGINX_LOCALHOST_ONLY=true)
 ```
 
 ### 2. Start the stack
@@ -157,6 +159,8 @@ Scroll down to **Environment variables** and add each of the following:
 | `CERTBOT_EMAIL` | Your email for Let's Encrypt registration and expiry notices (not required when `NGINX_LOCALHOST_ONLY=true`) |
 | `NGINX_LOCALHOST_ONLY` | Set to `true` to skip Let's Encrypt and run nginx in HTTP-only mode (optional) |
 | `NGINX_BIND_ADDR` | Set to `127.0.0.1` to restrict Docker port binding to the host loopback interface (optional, recommended with `NGINX_LOCALHOST_ONLY=true`) |
+| `NGINX_HTTP_PORT` | Host port to expose for HTTP — defaults to `80` (optional) |
+| `NGINX_HTTPS_PORT` | Host port to expose for HTTPS — defaults to `443`; unused when `NGINX_LOCALHOST_ONLY=true` (optional) |
 
 ### 4. Before You Click Deploy
 
