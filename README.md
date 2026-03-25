@@ -28,7 +28,7 @@ A self-contained Docker Compose stack for automatically processing DMARC aggrega
 - A DNS **A record** for your Kibana hostname pointing to this server's public IP — required before first start so Let's Encrypt can validate domain ownership (not required when `NGINX_LOCALHOST_ONLY=true`)
 - Ports **80** and **443** open and reachable from the internet (for Let's Encrypt and Kibana access; not required when `NGINX_LOCALHOST_ONLY=true`)
 - A dedicated email mailbox for DMARC reports (configure your domain's `rua=` and `ruf=` DNS records to deliver to it)
-- Minimum **8 GB RAM** on the host (Elasticsearch uses 2 GB heap)
+- Recommended minimum **8 GB RAM** on the host. Elasticsearch's JVM heap is controlled by `ES_HEAP_SIZE` (default: `2g`) and should be set to roughly half of available RAM, up to a maximum of `32g`. Smaller hosts can reduce this (e.g. `ES_HEAP_SIZE=1g` on a 4 GB host), though performance and indexing capacity will be reduced.
 
 ## Deployment
 
