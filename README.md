@@ -116,7 +116,7 @@ Reports are retained for the number of days set in `DATA_RETENTION_DAYS` (defaul
 
 ## Backups
 
-Snapshots are taken automatically on the schedule defined by `SNAPSHOT_SCHEDULE` (default: daily at 02:00 UTC) via Elasticsearch Snapshot Lifecycle Management. Snapshots are stored in the `elasticsearch_snapshots` Docker volume and retained for `SNAPSHOT_RETENTION_DAYS` days (default: 30), with a minimum of 5 snapshots always kept.
+Snapshots are taken automatically on the schedule defined by `SNAPSHOT_SCHEDULE` (default: daily at 02:00 UTC) via Elasticsearch Snapshot Lifecycle Management. Snapshots are stored in the `elasticsearch_data` Docker volume under a `snapshots/` subdirectory and retained for `SNAPSHOT_RETENTION_DAYS` days (default: 30), with a minimum of 5 snapshots always kept.
 
 ```bash
 # Trigger a snapshot immediately
