@@ -1,6 +1,6 @@
 # SHC DMARC Processor
 
-A self-contained Docker Compose stack for automatically processing DMARC aggregate and forensic reports received by email, storing the data in Elasticsearch, and visualizing it in Kibana — secured behind an nginx reverse proxy with automatic Let's Encrypt TLS.
+A self-contained Docker Compose stack for automatically processing DMARC aggregate and forensic reports received by email, storing the data in Elasticsearch, and visualizing it in Kibana — secured behind an nginx reverse proxy with automatic Let's Encrypt TLS, or optionally in HTTP-only mode when running behind an existing reverse proxy.
 
 ## Stack
 
@@ -9,7 +9,7 @@ A self-contained Docker Compose stack for automatically processing DMARC aggrega
 | **parsedmarc** | `python:3.13-slim` + parsedmarc | Polls IMAP inbox in watch mode, parses and indexes reports |
 | **Elasticsearch** | `8.17.0` | Stores parsed report data with 1-year retention |
 | **Kibana** | `8.17.0` | DMARC dashboards (login required) |
-| **nginx** | `nginx:alpine` + certbot | Reverse proxy with automatic Let's Encrypt TLS |
+| **nginx** | `nginx:alpine` + certbot | Reverse proxy with automatic Let's Encrypt TLS (or HTTP-only when `NGINX_LOCALHOST_ONLY=true`) |
 | **geoipupdate** | `ghcr.io/maxmind/geoipupdate` | Downloads and weekly-refreshes MaxMind GeoLite2-Country database |
 | **setup** | `alpine` | One-shot init: sets passwords, ILM policy, imports dashboards |
 
@@ -19,13 +19,13 @@ A self-contained Docker Compose stack for automatically processing DMARC aggrega
 2. Parsed reports are indexed into **Elasticsearch** immediately. Index lifecycle management automatically deletes data older than one year.
 3. **Kibana** provides pre-built dashboards for DMARC aggregate and forensic reports, imported automatically on first run.
 4. **geoipupdate** downloads the MaxMind GeoLite2-Country database on startup and refreshes it weekly. parsedmarc uses it to resolve sender IPs to countries in the dashboard.
-5. **nginx** terminates TLS using a Let's Encrypt certificate, redirects HTTP to HTTPS, and proxies all traffic to Kibana. The certificate is renewed automatically twice daily.
+5. **nginx** terminates TLS using a Let's Encrypt certificate, redirects HTTP to HTTPS, and proxies all traffic to Kibana. The certificate is renewed automatically twice daily. In `NGINX_LOCALHOST_ONLY=true` mode, nginx runs HTTP-only on port 80 with no certificate — suitable for deployments behind an existing TLS-terminating reverse proxy.
 
 ## Prerequisites
 
 - Docker and Docker Compose (v2) installed on the host
-- A DNS **A record** for your Kibana hostname pointing to this server's public IP — required before first start so Let's Encrypt can validate domain ownership
-- Ports **80** and **443** open and reachable from the internet (for Let's Encrypt and Kibana access)
+- A DNS **A record** for your Kibana hostname pointing to this server's public IP — required before first start so Let's Encrypt can validate domain ownership (not required when `NGINX_LOCALHOST_ONLY=true`)
+- Ports **80** and **443** open and reachable from the internet (for Let's Encrypt and Kibana access; not required when `NGINX_LOCALHOST_ONLY=true`)
 - A dedicated email mailbox for DMARC reports (configure your domain's `rua=` and `ruf=` DNS records to deliver to it)
 - Minimum **8 GB RAM** on the host (Elasticsearch uses 2 GB heap)
 
@@ -56,6 +56,10 @@ MAXMIND_LICENSE_KEY=       # MaxMind license key
 # nginx / Let's Encrypt
 KIBANA_HOSTNAME=           # e.g. dmarc.example.com (must resolve to this server)
 CERTBOT_EMAIL=             # email for Let's Encrypt registration and expiry notices
+
+# Optional: localhost / behind-proxy mode
+NGINX_LOCALHOST_ONLY=      # set to 'true' to skip Let's Encrypt and run HTTP-only
+NGINX_BIND_ADDR=           # set to '127.0.0.1' to restrict Docker port binding to host loopback
 ```
 
 ### 2. Start the stack
@@ -95,6 +99,8 @@ Reports are retained for **365 days**. Elasticsearch index lifecycle management 
 ## TLS Certificate Renewal
 
 The nginx container runs `certbot renew` via cron every 12 hours. Certbot only renews when the certificate is within 30 days of expiry and automatically reloads nginx on success — no manual intervention required.
+
+> **Note:** Certificate renewal does not apply when `NGINX_LOCALHOST_ONLY=true`. In that mode, certbot and crond are not started.
 
 ## Useful Commands
 
@@ -148,7 +154,9 @@ Scroll down to **Environment variables** and add each of the following:
 | `MAXMIND_ACCOUNT_ID` | MaxMind account ID (free account at maxmind.com) |
 | `MAXMIND_LICENSE_KEY` | MaxMind license key |
 | `KIBANA_HOSTNAME` | Public hostname for Kibana (e.g. `dmarc.example.com`) |
-| `CERTBOT_EMAIL` | Your email for Let's Encrypt registration and expiry notices |
+| `CERTBOT_EMAIL` | Your email for Let's Encrypt registration and expiry notices (not required when `NGINX_LOCALHOST_ONLY=true`) |
+| `NGINX_LOCALHOST_ONLY` | Set to `true` to skip Let's Encrypt and run nginx in HTTP-only mode (optional) |
+| `NGINX_BIND_ADDR` | Set to `127.0.0.1` to restrict Docker port binding to the host loopback interface (optional, recommended with `NGINX_LOCALHOST_ONLY=true`) |
 
 ### 4. Before You Click Deploy
 
