@@ -12,7 +12,7 @@ A self-contained Docker Compose stack for automatically processing DMARC aggrega
 | **nginx** | `nginx:alpine` + certbot | Reverse proxy with automatic Let's Encrypt TLS (or HTTP-only when `NGINX_LOCALHOST_ONLY=true`) |
 | **geoipupdate** | `ghcr.io/maxmind/geoipupdate` | Downloads and weekly-refreshes MaxMind GeoLite2-Country database |
 | **setup** | `alpine` | One-shot init: sets passwords, ILM policy, snapshot policy, viewer user, imports dashboards |
-| **watchtower** | `containrrr/watchtower` | Automatically pulls and redeploys updated parsedmarc and nginx images |
+| **watchtower** | `containrrr/watchtower` | Automatically pulls and redeploys updated parsedmarc and nginx images (optional — disabled by default) |
 
 ## How It Works
 
@@ -75,8 +75,9 @@ KIBANA_VIEWER_PASSWORD=    # read-only Kibana user password (leave empty to skip
 SNAPSHOT_SCHEDULE=0 0 2 * * ?   # ES cron for daily snapshots (default: 02:00 UTC)
 SNAPSHOT_RETENTION_DAYS=30      # days to keep snapshots (minimum 5 always kept)
 
-# Watchtower
-WATCHTOWER_INTERVAL=86400  # seconds between image update checks (default: 24h)
+# Watchtower (optional — see below)
+#COMPOSE_PROFILES=watchtower  # uncomment to enable Watchtower
+WATCHTOWER_INTERVAL=86400     # seconds between image update checks (default: 24h)
 ```
 
 ### 2. Start the stack
@@ -138,6 +139,22 @@ docker compose start parsedmarc
 The nginx container runs `certbot renew` via cron every 12 hours. Certbot only renews when the certificate is within 30 days of expiry and automatically reloads nginx on success — no manual intervention required.
 
 > **Note:** Certificate renewal does not apply when `NGINX_LOCALHOST_ONLY=true`. In that mode, certbot and crond are not started.
+
+## Automatic Image Updates
+
+Watchtower monitors the `parsedmarc` and `nginx` containers and automatically pulls and redeploys updated images. It is **disabled by default** and must be explicitly opted in.
+
+**Docker Compose CLI** — enable by setting the `watchtower` profile:
+
+```bash
+# One-time or persistent via .env
+COMPOSE_PROFILES=watchtower docker compose up -d
+
+# Or add to .env:
+COMPOSE_PROFILES=watchtower
+```
+
+**Portainer users** — use Portainer's built-in **GitOps updates** feature instead. When enabled on your stack, Portainer will automatically pull the latest `docker-compose.yml` from this repository and redeploy when changes are pushed. Watchtower is redundant in this case.
 
 ## Useful Commands
 
@@ -201,7 +218,7 @@ Scroll down to **Environment variables** and add each of the following:
 | `KIBANA_VIEWER_PASSWORD` | Password for the read-only `kibana_viewer` Kibana user — leave empty to skip creation |
 | `SNAPSHOT_SCHEDULE` | Elasticsearch SLM cron schedule for snapshots — defaults to `0 0 2 * * ?` (daily at 02:00 UTC) |
 | `SNAPSHOT_RETENTION_DAYS` | Days to keep snapshots — defaults to `30` (minimum 5 always kept) |
-| `WATCHTOWER_INTERVAL` | Seconds between Watchtower image update checks — defaults to `86400` (24h) |
+| `WATCHTOWER_INTERVAL` | Seconds between Watchtower image update checks — defaults to `86400` (24h). Not needed if using Portainer GitOps updates instead of Watchtower. |
 
 ### 4. Before You Click Deploy
 
