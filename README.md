@@ -207,7 +207,7 @@ Scroll down to **Environment variables** and add each of the following:
 | `IMAP_PASSWORD` | The IMAP account password |
 | `MAXMIND_ACCOUNT_ID` | MaxMind account ID (free account at maxmind.com) |
 | `MAXMIND_LICENSE_KEY` | MaxMind license key |
-| `KIBANA_HOSTNAME` | Public hostname for Kibana (e.g. `dmarc.example.com`) |
+| `KIBANA_HOSTNAME` | Public hostname for Kibana (e.g. `dmarc.example.com`) — also used to set Kibana's `server.publicBaseUrl` |
 | `CERTBOT_EMAIL` | Your email for Let's Encrypt registration and expiry notices (not required when `NGINX_LOCALHOST_ONLY=true`) |
 | `NGINX_LOCALHOST_ONLY` | Set to `true` to skip Let's Encrypt and run nginx in HTTP-only mode (optional) |
 | `NGINX_BIND_ADDR` | Set to `127.0.0.1` to restrict Docker port binding to the host loopback interface (optional, recommended with `NGINX_LOCALHOST_ONLY=true`) |
@@ -219,6 +219,7 @@ Scroll down to **Environment variables** and add each of the following:
 | `SNAPSHOT_SCHEDULE` | Elasticsearch SLM cron schedule for snapshots — defaults to `0 0 2 * * ?` (daily at 02:00 UTC) |
 | `SNAPSHOT_RETENTION_DAYS` | Days to keep snapshots — defaults to `30` (minimum 5 always kept) |
 | `WATCHTOWER_INTERVAL` | Seconds between Watchtower image update checks — defaults to `86400` (24h). Not needed if using Portainer GitOps updates instead of Watchtower. |
+| `COMPOSE_PROFILES` | Set to `watchtower` to enable the Watchtower service. Portainer users should use GitOps updates instead (optional). |
 
 ### 4. Before You Click Deploy
 
@@ -229,6 +230,8 @@ Scroll down to **Environment variables** and add each of the following:
 ### 5. Deploy
 
 Click **Deploy the stack**. Portainer will clone the repo and start all services. The startup order is:
+
+> **Note for Cloudflare Tunnel users:** If Portainer is running behind a Cloudflare Tunnel, you may see a **524 timeout error** during deployment. This happens because the full startup sequence (Elasticsearch, setup, Kibana health checks) takes longer than Cloudflare's default tunnel timeout, causing the browser to lose connection before Portainer can report success. The stack will still deploy successfully in the background. After seeing the 524, wait a minute and verify by running `docker ps` on the host — if all containers are running, the deployment succeeded.
 
 ```
 elasticsearch → (setup + kibana + geoipupdate) → parsedmarc → nginx
