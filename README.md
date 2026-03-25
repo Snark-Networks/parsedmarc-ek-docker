@@ -1,4 +1,4 @@
-# SHC DMARC Processor
+# DMARC Processor on Docker
 
 A self-contained Docker Compose stack for automatically processing DMARC aggregate and forensic reports received by email, storing the data in Elasticsearch, and visualizing it in Kibana — secured behind an nginx reverse proxy with automatic Let's Encrypt TLS, or optionally in HTTP-only mode when running behind an existing reverse proxy.
 
