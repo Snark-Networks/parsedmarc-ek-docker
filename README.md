@@ -17,7 +17,7 @@ A self-contained Docker Compose stack for automatically processing DMARC aggrega
 ## How It Works
 
 1. **parsedmarc** connects to a dedicated IMAP mailbox over SSL (port 993) and uses IMAP IDLE to process reports as they arrive — no cron job required.
-2. Parsed reports are indexed into **Elasticsearch** immediately. Index lifecycle management automatically deletes data older than one year.
+2. Parsed reports are indexed into **Elasticsearch** immediately. Index lifecycle management automatically deletes data older than the number of days set in `DATA_RETENTION_DAYS` (default: 365).
 3. **Kibana** provides pre-built dashboards for DMARC aggregate and forensic reports, imported automatically on first run.
 4. **geoipupdate** downloads the MaxMind GeoLite2-Country database on startup and refreshes it weekly. parsedmarc uses it to resolve sender IPs to countries in the dashboard.
 5. **nginx** terminates TLS using a Let's Encrypt certificate, redirects HTTP to HTTPS, and proxies all traffic to Kibana. The certificate is renewed automatically twice daily. In `NGINX_LOCALHOST_ONLY=true` mode, nginx runs HTTP-only on port 80 with no certificate — suitable for deployments behind an existing TLS-terminating reverse proxy.
@@ -88,7 +88,7 @@ docker compose up -d
 **First-run sequence:**
 
 1. Elasticsearch starts and becomes healthy (~60s)
-2. `setup` runs: sets `kibana_system` password, creates the 1-year ILM policy and index templates, waits for Kibana, then imports the pre-built DMARC dashboards
+2. `setup` runs: sets `kibana_system` password, creates the ILM retention policy, index templates, snapshot repository and SLM policy, and optional read-only viewer user; waits for Kibana, then imports the pre-built DMARC dashboards
 3. Kibana starts after Elasticsearch is ready
 4. `parsedmarc` starts after `setup` completes successfully
 5. `nginx` starts after Kibana is healthy, acquires a Let's Encrypt certificate on first run, then begins proxying traffic
