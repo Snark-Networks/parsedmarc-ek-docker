@@ -186,3 +186,20 @@ When changes are pushed to the repo, go to the stack in Portainer and click **Pu
 | Elasticsearch API | `elastic` | Value of `ELASTIC_PASSWORD` |
 
 There are no hardcoded default passwords — all credentials are set by you in the environment variables before deployment. The `kibana_system` account is used internally by Kibana to communicate with Elasticsearch and is not used for interactive login.
+
+## Attribution
+
+This project does not contain original software — it is a Docker Compose configuration that bundles the following open source projects:
+
+| Project | Author | License | Link |
+|---|---|---|---|
+| **parsedmarc** | Domainaware | Apache 2.0 | [github.com/domainaware/parsedmarc](https://github.com/domainaware/parsedmarc) |
+| **Elasticsearch** | Elastic | ELv2 / SSPL | [elastic.co/elasticsearch](https://www.elastic.co/elasticsearch) |
+| **Kibana** | Elastic | ELv2 / SSPL | [elastic.co/kibana](https://www.elastic.co/kibana) |
+| **nginx** | nginx, Inc. | BSD 2-Clause | [nginx.org](https://nginx.org) |
+| **Certbot** | EFF | Apache 2.0 | [certbot.eff.org](https://certbot.eff.org) |
+| **Let's Encrypt** | ISRG | — | [letsencrypt.org](https://letsencrypt.org) |
+| **GeoLite2** | MaxMind | CC BY-SA 4.0 | [maxmind.com](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) |
+| **geoipupdate** | MaxMind | MIT | [github.com/maxmind/geoipupdate](https://github.com/maxmind/geoipupdate) |
+
+All trademarks and registered trademarks are the property of their respective owners.
