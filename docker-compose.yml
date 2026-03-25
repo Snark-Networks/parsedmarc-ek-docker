@@ -35,6 +35,7 @@ services:
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
       - xpack.security.enabled=true
+      - SERVER_PUBLICBASEURL=https://${KIBANA_HOSTNAME}
     # Port intentionally not exposed to host — nginx proxies all external traffic.
     depends_on:
       elasticsearch:
