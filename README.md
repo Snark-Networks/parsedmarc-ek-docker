@@ -263,5 +263,6 @@ This project does not contain original software — it is a Docker Compose confi
 | **Let's Encrypt** | ISRG | — | [letsencrypt.org](https://letsencrypt.org) |
 | **GeoLite2** | MaxMind | CC BY-SA 4.0 | [maxmind.com](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) |
 | **geoipupdate** | MaxMind | MIT | [github.com/maxmind/geoipupdate](https://github.com/maxmind/geoipupdate) |
+| **Watchtower** | containrrr | Apache 2.0 | [github.com/containrrr/watchtower](https://github.com/containrrr/watchtower) |
 
 All trademarks and registered trademarks are the property of their respective owners.
