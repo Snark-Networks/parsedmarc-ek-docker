@@ -9,9 +9,24 @@ if [ -z "${KIBANA_HOSTNAME}" ]; then
     exit 1
 fi
 
-if [ -z "${CERTBOT_EMAIL}" ]; then
+if [ "${NGINX_LOCALHOST_ONLY}" != "true" ] && [ -z "${CERTBOT_EMAIL}" ]; then
     echo "ERROR: CERTBOT_EMAIL environment variable is required." >&2
+    echo "       Set NGINX_LOCALHOST_ONLY=true to skip Let's Encrypt and run HTTP-only." >&2
     exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Localhost / behind-proxy mode: HTTP only, no certificate needed
+# ---------------------------------------------------------------------------
+if [ "${NGINX_LOCALHOST_ONLY}" = "true" ]; then
+    echo "==> NGINX_LOCALHOST_ONLY=true: using HTTP-only config, skipping Let's Encrypt."
+
+    envsubst '${KIBANA_HOSTNAME}' \
+        < /etc/nginx/nginx-localhost.conf.template \
+        > /etc/nginx/conf.d/default.conf
+
+    echo "==> Starting nginx (${KIBANA_HOSTNAME}, HTTP only)..."
+    exec nginx -g 'daemon off;'
 fi
 
 CERT_PATH="/etc/letsencrypt/live/${KIBANA_HOSTNAME}/fullchain.pem"

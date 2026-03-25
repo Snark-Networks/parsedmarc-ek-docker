@@ -93,9 +93,10 @@ services:
     environment:
       - KIBANA_HOSTNAME=${KIBANA_HOSTNAME}
       - CERTBOT_EMAIL=${CERTBOT_EMAIL}
+      - NGINX_LOCALHOST_ONLY=${NGINX_LOCALHOST_ONLY:-false}
     ports:
-      - "80:80"
-      - "443:443"
+      - "${NGINX_BIND_ADDR:-0.0.0.0}:80:80"
+      - "${NGINX_BIND_ADDR:-0.0.0.0}:443:443"
     volumes:
       - nginx_certs:/etc/letsencrypt
     depends_on:

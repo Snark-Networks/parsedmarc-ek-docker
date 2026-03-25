@@ -10,6 +10,7 @@ RUN rm -f /etc/nginx/conf.d/default.conf
 # Config templates
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY nginx-acme-only.conf.template /etc/nginx/nginx-acme-only.conf.template
+COPY nginx-localhost.conf.template /etc/nginx/nginx-localhost.conf.template
 
 # Certbot renewal crontab (runs twice daily)
 COPY crontab /etc/crontabs/root
