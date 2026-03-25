@@ -192,7 +192,7 @@ docker compose down -v
 - **Repository URL:** `https://github.com/Snark-Networks/parsedmarc-ek-docker`
 - **Repository reference:** `refs/heads/main`
 - **Compose path:** `docker-compose.yml`
-- If the repo is private, enable **Authentication** and provide a GitHub personal access token
+
 
 ### 3. Set Environment Variables
 
