@@ -253,6 +253,10 @@ When changes are pushed to the repo, go to the stack in Portainer and click **Pu
 
 There are no hardcoded default passwords — all credentials are set by you in the environment variables before deployment. The `kibana_system` account is used internally by Kibana to communicate with Elasticsearch and is not used for interactive login.
 
+## Disclaimer
+
+This project is provided as-is, without warranty of any kind. The authors make no guarantees about its fitness for any particular purpose, security, or correctness. You are solely responsible for how you deploy and operate it, including securing access credentials, network exposure, and compliance with applicable laws. Use at your own risk.
+
 ## Attribution
 
 This project does not contain original software — it is a Docker Compose configuration that bundles the following open source projects:
