@@ -39,7 +39,6 @@ jobs:
           tags: |
             ghcr.io/snark-networks/parsedmarc-ek-docker/parsedmarc:latest
             ghcr.io/snark-networks/parsedmarc-ek-docker/parsedmarc:${{ github.sha }}
-          cache-from: type=gha
           cache-to: type=gha,mode=max
 
   build-setup:
@@ -72,7 +71,6 @@ jobs:
           tags: |
             ghcr.io/snark-networks/parsedmarc-ek-docker/setup:latest
             ghcr.io/snark-networks/parsedmarc-ek-docker/setup:${{ github.sha }}
-          cache-from: type=gha
           cache-to: type=gha,mode=max
 
   build-nginx:
@@ -105,5 +103,4 @@ jobs:
           tags: |
             ghcr.io/snark-networks/parsedmarc-ek-docker/nginx:latest
             ghcr.io/snark-networks/parsedmarc-ek-docker/nginx:${{ github.sha }}
-          cache-from: type=gha
           cache-to: type=gha,mode=max
